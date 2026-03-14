@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(Translation)
+import Translation
+#endif
 
 struct SettingsView: View {
     @EnvironmentObject private var settingsStore: SettingsStore
@@ -17,6 +20,11 @@ struct SettingsView: View {
                 }
 
                 Section("Features") {
+                    NavigationLink("Quick Recognition") {
+                        QuickRecognitionSettingsView()
+                            .environmentObject(settingsStore)
+                    }
+
                     NavigationLink("Face Recognition") {
                         FaceRecognitionSettingsView()
                             .environmentObject(settingsStore)
@@ -31,6 +39,167 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environmentObject(SettingsStore())
+}
+
+private struct QuickRecognitionSettingsView: View {
+    @EnvironmentObject private var settingsStore: SettingsStore
+
+    #if canImport(Translation)
+    @StateObject private var translationLanguageStore = TranslationLanguageStore()
+    #endif
+
+    private var selectedCaptionLength: Binding<QuickCaptionLength> {
+        Binding(
+            get: { QuickCaptionLength(rawValue: settingsStore.quickCaptionLength) ?? .short },
+            set: { settingsStore.quickCaptionLength = $0.rawValue }
+        )
+    }
+
+    private var selectedContinuousCaptureInterval: Binding<QuickContinuousCaptureInterval> {
+        Binding(
+            get: { QuickContinuousCaptureInterval(rawValue: settingsStore.quickContinuousCaptureInterval) ?? .defaultInterval },
+            set: { settingsStore.quickContinuousCaptureInterval = $0.rawValue }
+        )
+    }
+
+    var body: some View {
+        Form {
+            Section {
+                SecureField("API Key", text: $settingsStore.quickMoondreamAPIKey)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+            }
+
+            Section("Take Photo") {
+                Picker("Caption Length", selection: selectedCaptionLength) {
+                    ForEach(QuickCaptionLength.allCases) { length in
+                        Text(length.displayName).tag(length)
+                    }
+                }
+
+                Text("This setting applies to Take Photo only. Continuous mode uses the short caption style.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Continuous Mode") {
+                Picker("Capture Frequency", selection: selectedContinuousCaptureInterval) {
+                    ForEach(QuickContinuousCaptureInterval.allCases) { interval in
+                        Text(interval.displayName).tag(interval)
+                    }
+                }
+
+                Text("Choose how often Continuous mode takes a picture. Each completed result is announced when available.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            Section("Custom Button") {
+                TextField("Button Name", text: $settingsStore.quickCustomQueryTitle)
+                    .textInputAutocapitalization(.words)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Prompt")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    TextEditor(text: $settingsStore.quickCustomQueryPrompt)
+                        .frame(minHeight: 120)
+                }
+
+                Text("This button appears to the left of Product and uses the prompt you save here.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+
+            translationSection
+        }
+        .navigationTitle("Quick Recognition")
+        #if canImport(Translation)
+        .task {
+            if #available(iOS 18.0, *) {
+                await translationLanguageStore.loadLanguages()
+                refreshSelectedLanguageIfNeeded()
+            }
+        }
+        #endif
+    }
+
+    @ViewBuilder
+    private var translationSection: some View {
+        #if canImport(Translation)
+        if #available(iOS 18.0, *) {
+            Section("Translation") {
+                Toggle("Enable Translation", isOn: $settingsStore.quickCaptionTranslationEnabled)
+                    .disabled(!translationLanguageStore.hasAvailableLanguages)
+
+                if translationLanguageStore.isLoading {
+                    LabeledContent("Target Language") {
+                        Text("Loading available languages...")
+                            .foregroundStyle(.secondary)
+                    }
+                } else if let errorMessage = translationLanguageStore.errorMessage {
+                    Text(errorMessage)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else if translationLanguageStore.availableLanguages.isEmpty {
+                    Text("No translation languages are currently available on this device.")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Picker("Target Language", selection: $settingsStore.quickCaptionTranslationTargetLanguage) {
+                        Text("Choose a language").tag("")
+
+                        ForEach(translationLanguageStore.availableLanguages) { language in
+                            Text(language.displayName).tag(language.identifier)
+                        }
+                    }
+                    .disabled(!settingsStore.quickCaptionTranslationEnabled)
+                }
+
+                Text("Translate Quick Recognition results into the language you choose below.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        } else {
+            Section("Translation") {
+                Text("Translation is unavailable on this device.")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        #else
+        Section("Translation") {
+            Text("Translation is unavailable on this device.")
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+        }
+        #endif
+    }
+
+    #if canImport(Translation)
+    private func refreshSelectedLanguageIfNeeded() {
+        guard !translationLanguageStore.isLoading else { return }
+
+        if translationLanguageStore.availableLanguages.isEmpty {
+            settingsStore.quickCaptionTranslationTargetLanguage = ""
+            settingsStore.quickCaptionTranslationEnabled = false
+            return
+        }
+
+        if settingsStore.quickCaptionTranslationTargetLanguage.isEmpty {
+            return
+        }
+
+        let selectedLanguageStillAvailable = translationLanguageStore.availableLanguages.contains {
+            $0.identifier == settingsStore.quickCaptionTranslationTargetLanguage
+        }
+
+        if !selectedLanguageStillAvailable {
+            settingsStore.quickCaptionTranslationTargetLanguage = ""
+        }
+    }
+    #endif
 }
 
 private struct FaceRecognitionSettingsView: View {
@@ -181,3 +350,65 @@ private final class SavedFacesViewModel: ObservableObject {
         }
     }
 }
+
+#if canImport(Translation)
+@MainActor
+private final class TranslationLanguageStore: ObservableObject {
+    @Published private(set) var availableLanguages: [TranslationLanguageOption] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var errorMessage: String?
+
+    var hasAvailableLanguages: Bool {
+        !availableLanguages.isEmpty
+    }
+
+    func loadLanguages() async {
+        guard availableLanguages.isEmpty, !isLoading else { return }
+
+        isLoading = true
+        errorMessage = nil
+
+        if #available(iOS 18.0, *) {
+            do {
+                let supportedLanguages = try await LanguageAvailability().supportedLanguages
+                availableLanguages = supportedLanguages
+                    .map(TranslationLanguageOption.init)
+                    .sorted { $0.displayName.localizedCaseInsensitiveCompare($1.displayName) == .orderedAscending }
+            } catch {
+                errorMessage = "Unable to load translation languages right now."
+                availableLanguages = []
+            }
+        } else {
+            errorMessage = "Translation is unavailable on this device."
+            availableLanguages = []
+        }
+
+        isLoading = false
+    }
+}
+
+private struct TranslationLanguageOption: Identifiable, Equatable {
+    let identifier: String
+
+    @available(iOS 18.0, *)
+    init(language: Locale.Language) {
+        if !language.maximalIdentifier.isEmpty {
+            identifier = language.maximalIdentifier
+        } else if !language.minimalIdentifier.isEmpty {
+            identifier = language.minimalIdentifier
+        } else {
+            identifier = String(describing: language)
+        }
+    }
+
+    var id: String { identifier }
+
+    var displayName: String {
+        if let localizedName = Locale.current.localizedString(forIdentifier: identifier), !localizedName.isEmpty {
+            return localizedName
+        }
+
+        return identifier
+    }
+}
+#endif

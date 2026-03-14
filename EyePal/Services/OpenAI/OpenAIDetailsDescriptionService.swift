@@ -139,10 +139,37 @@ final class OpenAIDetailsDescriptionService {
     private func makePayload(imageData: Data, conversation: [DetailsDescriptionTurn]) -> [String: Any] {
         [
             "model": "gpt-5.4",
+            "instructions": makeInstructions(),
             "store": false,
             "stream": false,
             "input": buildInput(from: conversation, imageData: imageData)
         ]
+    }
+
+    private func makeInstructions() -> String {
+        let baseInstructions = "You are a concise visual assistant for a blind user. Describe the scene accurately, prioritize safety-relevant details, visible text, people, objects, layout, and orientation cues. Answer follow-up questions using the image and prior conversation."
+
+        guard let systemLanguageInstruction = currentSystemLanguageInstruction() else {
+            return baseInstructions
+        }
+
+        return "\(baseInstructions) \(systemLanguageInstruction)"
+    }
+
+    private func currentSystemLanguageInstruction() -> String? {
+        guard let preferredLanguageIdentifier = Locale.preferredLanguages.first,
+              !preferredLanguageIdentifier.isEmpty else {
+            return nil
+        }
+
+        let localizedLanguageName = Locale.current.localizedString(forIdentifier: preferredLanguageIdentifier)
+            ?? Locale(identifier: "en").localizedString(forIdentifier: preferredLanguageIdentifier)
+
+        if let localizedLanguageName, !localizedLanguageName.isEmpty {
+            return "Use the user's current system language for your response: \(localizedLanguageName) (\(preferredLanguageIdentifier))."
+        }
+
+        return "Use the user's current system language for your response: \(preferredLanguageIdentifier)."
     }
 
     private func buildInput(from conversation: [DetailsDescriptionTurn], imageData: Data) -> [[String: Any]] {

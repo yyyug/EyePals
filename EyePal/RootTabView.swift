@@ -3,6 +3,11 @@ import SwiftUI
 struct RootTabView: View {
     var body: some View {
         TabView {
+            QuickRecognitionView()
+                .tabItem {
+                    Label("Quick", systemImage: "camera.viewfinder")
+                }
+
             DetailsDescriptionView()
                 .tabItem {
                     Label("Details", systemImage: "sparkles.rectangle.stack")

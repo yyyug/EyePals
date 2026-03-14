@@ -31,6 +31,10 @@
 		A1000001000000000000001C /* OpenAIDetailsDescriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000101000000000000001C /* OpenAIDetailsDescriptionService.swift */; };
 		A1000001000000000000001D /* DetailsDescriptionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000101000000000000001D /* DetailsDescriptionViewModel.swift */; };
 		A1000001000000000000001E /* DetailsDescriptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000101000000000000001E /* DetailsDescriptionView.swift */; };
+		A1000001000000000000001F /* QuickRecognitionModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000101000000000000001F /* QuickRecognitionModels.swift */; };
+		A10000010000000000000020 /* QuickRecognitionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000020 /* QuickRecognitionService.swift */; };
+		A10000010000000000000021 /* QuickRecognitionViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000021 /* QuickRecognitionViewModel.swift */; };
+		A10000010000000000000022 /* QuickRecognitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000022 /* QuickRecognitionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -61,6 +65,10 @@
 		A1000101000000000000001C /* OpenAIDetailsDescriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIDetailsDescriptionService.swift; sourceTree = "<group>"; };
 		A1000101000000000000001D /* DetailsDescriptionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsDescriptionViewModel.swift; sourceTree = "<group>"; };
 		A1000101000000000000001E /* DetailsDescriptionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsDescriptionView.swift; sourceTree = "<group>"; };
+		A1000101000000000000001F /* QuickRecognitionModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecognitionModels.swift; sourceTree = "<group>"; };
+		A10001010000000000000020 /* QuickRecognitionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecognitionService.swift; sourceTree = "<group>"; };
+		A10001010000000000000021 /* QuickRecognitionViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecognitionViewModel.swift; sourceTree = "<group>"; };
+		A10001010000000000000022 /* QuickRecognitionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickRecognitionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -110,6 +118,7 @@
         A10003000000000000000004 /* Models */ = {
             isa = PBXGroup;
             children = (
+                A1000101000000000000001F /* QuickRecognitionModels.swift */,
                 A10001010000000000000003 /* FaceProfile.swift */,
                 A10001010000000000000004 /* FaceSuggestion.swift */,
             );
@@ -120,6 +129,7 @@
             isa = PBXGroup;
             children = (
                 A10001010000000000000005 /* AccessibilityAnnouncementCenter.swift */,
+                A10001010000000000000020 /* QuickRecognitionService.swift */,
                 A10003000000000000000008 /* Camera */,
                 A10003000000000000000009 /* ReadText */,
                 A1000300000000000000000A /* Face */,
@@ -131,6 +141,7 @@
         A10003000000000000000006 /* ViewModels */ = {
             isa = PBXGroup;
             children = (
+				A10001010000000000000021 /* QuickRecognitionViewModel.swift */,
 				A1000101000000000000001D /* DetailsDescriptionViewModel.swift */,
                 A1000101000000000000000C /* ReadTextViewModel.swift */,
                 A1000101000000000000000D /* FaceRecognitionViewModel.swift */,
@@ -142,6 +153,7 @@
         A10003000000000000000007 /* Views */ = {
             isa = PBXGroup;
             children = (
+				A10001010000000000000022 /* QuickRecognitionView.swift */,
 				A1000101000000000000001E /* DetailsDescriptionView.swift */,
                 A1000101000000000000000F /* ReadTextView.swift */,
                 A10001010000000000000010 /* FaceRecognitionView.swift */,
@@ -264,6 +276,10 @@
 				A1000001000000000000001C /* OpenAIDetailsDescriptionService.swift in Sources */,
 				A1000001000000000000001E /* DetailsDescriptionView.swift in Sources */,
 				A1000001000000000000001D /* DetailsDescriptionViewModel.swift in Sources */,
+				A1000001000000000000001F /* QuickRecognitionModels.swift in Sources */,
+				A10000010000000000000020 /* QuickRecognitionService.swift in Sources */,
+				A10000010000000000000021 /* QuickRecognitionViewModel.swift in Sources */,
+				A10000010000000000000022 /* QuickRecognitionView.swift in Sources */,
 				A10000010000000000000009 /* FaceEmbeddingEngine.swift in Sources */,
 				A10000010000000000000018 /* FaceModelContract.swift in Sources */,
 				A10000010000000000000003 /* FaceProfile.swift in Sources */,
