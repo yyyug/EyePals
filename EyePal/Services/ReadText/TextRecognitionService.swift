@@ -72,7 +72,7 @@ final class TextRecognitionService {
     ) {
         processingQueue.async {
             let visionImage = VisionImage(image: image)
-            visionImage.orientation = image.imageOrientation.mlKitOrientation
+            visionImage.orientation = image.imageOrientation
 
             let scripts = [self.lastSuccessfulScript] + ScriptRecognizer.allCases.filter { $0 != self.lastSuccessfulScript }
             self.processScripts(scripts, image: visionImage) { observation in
@@ -114,31 +114,6 @@ final class TextRecognitionService {
             self.languageIdentifier.identifyLanguage(for: text) { code, _ in
                 completion(TextRecognitionObservation(text: text, languageCode: code))
             }
-        }
-    }
-}
-
-private extension UIImage.Orientation {
-    var mlKitOrientation: UIImage.Orientation {
-        switch self {
-        case .up:
-            return .topLeft
-        case .down:
-            return .bottomRight
-        case .left:
-            return .leftBottom
-        case .right:
-            return .rightTop
-        case .upMirrored:
-            return .topRight
-        case .downMirrored:
-            return .bottomLeft
-        case .leftMirrored:
-            return .leftTop
-        case .rightMirrored:
-            return .rightBottom
-        @unknown default:
-            return .topLeft
         }
     }
 }
