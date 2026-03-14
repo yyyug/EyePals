@@ -119,7 +119,7 @@ final class TextRecognitionService {
 }
 
 private extension UIImage.Orientation {
-    var mlKitOrientation: UIImageOrientation {
+    var mlKitOrientation: UIImage.Orientation {
         switch self {
         case .up:
             return .topLeft
