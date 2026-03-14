@@ -88,7 +88,7 @@ final class FaceEmbeddingEngine {
             throw FaceEmbeddingError.missingOutputFeature(FaceModelContract.outputName)
         }
 
-        let outputTensorData = try outputValue.tensorData()
+        let outputTensorData = try outputValue.tensorData() as Data
         let outputShape = try outputValue.tensorTypeAndShapeInfo().shape
         let vector = try outputTensorData.toEmbeddingVector(shape: outputShape, expectedCount: FaceModelContract.defaultEmbeddingSize)
         return normalized(vector)
@@ -182,7 +182,7 @@ private extension Data {
 
         return withUnsafeBytes { rawBuffer in
             let floats = rawBuffer.bindMemory(to: Float32.self)
-            return Array(floats.prefix(expectedCount)).map(Float.init)
+            return Array(floats[0..<expectedCount]).map(Float.init)
         }
     }
 }
