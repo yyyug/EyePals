@@ -22,7 +22,7 @@ final class FaceRecognitionViewModel: ObservableObject {
 
     func bind(settings: SettingsStore) {
         settingsStore = settings
-        recognitionService.recognitionThreshold = Float(settings.faceMatchThreshold)
+        recognitionService.recognitionThreshold = max(Float(settings.faceMatchThreshold), 0.88)
     }
 
     func start() {

@@ -30,9 +30,12 @@ struct FaceRecognitionView: View {
                 NavigationStack {
                     Form {
                         Section("New Face") {
-                            Text("EyePal found a stable unknown face. Save it only if you know this person.")
                             TextField("Person's name", text: $suggestedName)
                                 .textInputAutocapitalization(.words)
+                                .submitLabel(.done)
+                                .onSubmit {
+                                    saveSuggestedFace()
+                                }
                         }
                     }
                     .navigationTitle("Add Person")
@@ -46,8 +49,7 @@ struct FaceRecognitionView: View {
 
                         ToolbarItem(placement: .confirmationAction) {
                             Button("Save") {
-                                viewModel.saveSuggestion(named: suggestedName)
-                                suggestedName = ""
+                                saveSuggestedFace()
                             }
                             .disabled(suggestedName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                         }
@@ -69,6 +71,14 @@ struct FaceRecognitionView: View {
         .onDisappear {
             viewModel.stop()
         }
+    }
+
+    private func saveSuggestedFace() {
+        let trimmedName = suggestedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { return }
+
+        viewModel.saveSuggestion(named: trimmedName)
+        suggestedName = ""
     }
 }
 

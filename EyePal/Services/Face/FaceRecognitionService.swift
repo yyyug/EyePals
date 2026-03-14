@@ -9,6 +9,11 @@ struct FaceMatch: Equatable {
 }
 
 final class FaceRecognitionService {
+    private struct CandidateMatch {
+        let profile: FaceProfile
+        let confidence: Float
+    }
+
     private let embeddingEngine = FaceEmbeddingEngine()
     private let faceStore = FaceStore()
     private let processingQueue = DispatchQueue(label: "com.eyepals.face.recognition")
@@ -18,10 +23,14 @@ final class FaceRecognitionService {
     private var profiles: [FaceProfile] = []
     private var lastUnknownSuggestionDate = Date.distantPast
     private var consecutiveUnknownFrames = 0
+    private var pendingKnownMatch: CandidateMatch?
+    private var consecutiveKnownFrames = 0
 
-    var recognitionThreshold: Float = 0.82
+    var recognitionThreshold: Float = 0.9
     var suggestionFrameThreshold = 6
     var minimumSuggestionInterval: TimeInterval = 10
+    var knownMatchFrameThreshold = 3
+    var minimumTopMatchMargin: Float = 0.04
 
     func loadProfiles() async throws -> [FaceProfile] {
         let loaded = try await faceStore.loadProfiles()
@@ -48,7 +57,7 @@ final class FaceRecognitionService {
                     let faceImage = try self.extractPrimaryFace(from: sampleBuffer)
                     let embedding = try await self.embeddingEngine.embedding(for: faceImage)
 
-                    if let match = self.bestMatch(for: embedding) {
+                    if let match = self.confirmedMatch(for: embedding) {
                         self.consecutiveUnknownFrames = 0
                         await completion(match, nil)
                     } else {
@@ -110,21 +119,57 @@ final class FaceRecognitionService {
         return cgImage
     }
 
-    private func bestMatch(for embedding: [Float]) -> FaceMatch? {
-        let candidate = profiles
-            .map { profile in
-                (profile, cosineSimilarity(embedding, profile.embedding))
-            }
-            .max { $0.1 < $1.1 }
-
-        guard let candidate, candidate.1 >= recognitionThreshold else {
+    private func confirmedMatch(for embedding: [Float]) -> FaceMatch? {
+        guard let candidate = bestMatch(for: embedding) else {
+            pendingKnownMatch = nil
+            consecutiveKnownFrames = 0
             return nil
         }
 
-        return FaceMatch(name: candidate.0.name, confidence: candidate.1)
+        if pendingKnownMatch?.profile.id == candidate.profile.id {
+            consecutiveKnownFrames += 1
+            pendingKnownMatch = candidate
+        } else {
+            pendingKnownMatch = candidate
+            consecutiveKnownFrames = 1
+        }
+
+        guard consecutiveKnownFrames >= knownMatchFrameThreshold else {
+            return nil
+        }
+
+        return FaceMatch(name: candidate.profile.name, confidence: candidate.confidence)
+    }
+
+    private func bestMatch(for embedding: [Float]) -> CandidateMatch? {
+        let rankedCandidates = profiles
+            .map { profile in
+                CandidateMatch(profile: profile, confidence: cosineSimilarity(embedding, profile.embedding))
+            }
+            .sorted { $0.confidence > $1.confidence }
+
+        guard let bestCandidate = rankedCandidates.first,
+              bestCandidate.confidence >= recognitionThreshold else {
+            return nil
+        }
+
+        if rankedCandidates.count > 1 {
+            let secondBestConfidence = rankedCandidates[1].confidence
+            guard (bestCandidate.confidence - secondBestConfidence) >= minimumTopMatchMargin else {
+                return nil
+            }
+        }
+
+        guard bestCandidate.confidence >= recognitionThreshold else {
+            return nil
+        }
+
+        return bestCandidate
     }
 
     private func handleUnknownFace(embedding: [Float], faceImage: CGImage) -> FaceSuggestion? {
+        pendingKnownMatch = nil
+        consecutiveKnownFrames = 0
         consecutiveUnknownFrames += 1
 
         guard consecutiveUnknownFrames >= suggestionFrameThreshold else {
