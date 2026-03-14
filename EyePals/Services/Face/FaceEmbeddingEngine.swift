@@ -180,9 +180,10 @@ private extension Data {
             throw FaceEmbeddingError.invalidOutput
         }
 
-        return withUnsafeBytes { rawBuffer in
+        let values: [Float] = withUnsafeBytes { (rawBuffer: UnsafeRawBufferPointer) -> [Float] in
             let floats = rawBuffer.bindMemory(to: Float32.self)
-            return Array(floats[0..<expectedCount]).map(Float.init)
+            return (0..<expectedCount).map { Float(floats[$0]) }
         }
+        return values
     }
 }
