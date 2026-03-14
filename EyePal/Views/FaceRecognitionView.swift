@@ -19,27 +19,6 @@ struct FaceRecognitionView: View {
                         Text(recognizedName)
                             .font(.largeTitle.weight(.bold))
                     }
-
-                    if !viewModel.profiles.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(viewModel.profiles) { profile in
-                                    HStack {
-                                        Text(profile.name)
-                                        Button(role: .destructive) {
-                                            viewModel.deleteProfile(id: profile.id)
-                                        } label: {
-                                            Image(systemName: "trash")
-                                        }
-                                        .accessibilityLabel("Delete \(profile.name)")
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 8)
-                                    .background(.thinMaterial, in: Capsule())
-                                }
-                            }
-                        }
-                    }
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -51,13 +30,9 @@ struct FaceRecognitionView: View {
                 NavigationStack {
                     Form {
                         Section("New Face") {
-                            Text("EyePals found a stable unknown face. Save it only if you know this person.")
+                            Text("EyePal found a stable unknown face. Save it only if you know this person.")
                             TextField("Person's name", text: $suggestedName)
                                 .textInputAutocapitalization(.words)
-                        }
-
-                        Section("Why this matters") {
-                            Text("Names and embeddings stay on this device. The app does not upload face data.")
                         }
                     }
                     .navigationTitle("Add Person")

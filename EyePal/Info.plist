@@ -21,9 +21,9 @@
     <key>LSRequiresIPhoneOS</key>
     <true/>
     <key>NSCameraUsageDescription</key>
-    <string>EyePals uses the camera to read text aloud and recognize familiar faces on-device.</string>
+    <string>EyePal uses the camera to read text aloud and recognize familiar faces on-device.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
-    <string>EyePals speaks recognized text and names for accessibility.</string>
+    <string>EyePal speaks recognized text and names for accessibility.</string>
     <key>UIApplicationSceneManifest</key>
     <dict>
         <key>UIApplicationSupportsMultipleScenes</key>

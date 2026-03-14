@@ -48,9 +48,9 @@ def main() -> None:
     print(f"Cosine similarity: {score:.4f}")
 
     if score >= 0.82:
-        print("Likely same person at the current EyePals threshold.")
+        print("Likely same person at the current EyePal threshold.")
     else:
-        print("Likely different people or a weak crop at the current EyePals threshold.")
+        print("Likely different people or a weak crop at the current EyePal threshold.")
 
 
 if __name__ == "__main__":

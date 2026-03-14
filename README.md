@@ -1,6 +1,6 @@
-# EyePals
+# EyePal
 
-EyePals is an accessibility-first native iOS app for blind and low-vision users. It provides:
+EyePal is an accessibility-first native iOS app for blind and low-vision users. It provides:
 
 - `Read Text`: live OCR with Google ML Kit Text Recognition v2 and VoiceOver announcements.
 - `Face Recognition`: fully on-device face enrollment and matching using Vision plus a bundled Core ML embedding model.
@@ -16,7 +16,7 @@ EyePals is an accessibility-first native iOS app for blind and low-vision users.
 ## Setup
 
 1. Run `pod install`.
-2. Open `EyePals.xcworkspace`.
+2. Open `EyePal.xcworkspace`.
 3. Download `arcface_fresh.onnx` into `tools/face_model/models/` before building locally.
 4. Build and run on a physical iPhone because the app depends on the camera.
 
@@ -45,7 +45,7 @@ The following files may exist locally for past experiments, but they are not par
 
 ## Suggested New-Face Flow
 
-When EyePals sees a stable unknown face across several frames, it surfaces a suggestion card instead of auto-saving. The user can:
+When EyePal sees a stable unknown face across several frames, it surfaces a suggestion card instead of auto-saving. The user can:
 
 - name and save the person locally
 - discard the suggestion

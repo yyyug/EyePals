@@ -7,7 +7,7 @@
     objects = {
 
 /* Begin PBXBuildFile section */
-        A10000010000000000000001 /* EyePalsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000001 /* EyePalsApp.swift */; };
+        A10000010000000000000001 /* EyePalApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000001 /* EyePalApp.swift */; };
         A10000010000000000000002 /* RootTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000002 /* RootTabView.swift */; };
         A10000010000000000000003 /* FaceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000003 /* FaceProfile.swift */; };
         A10000010000000000000004 /* FaceSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001010000000000000004 /* FaceSuggestion.swift */; };
@@ -30,8 +30,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-        A10001000000000000000001 /* EyePals.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EyePals.app; sourceTree = BUILT_PRODUCTS_DIR; };
-        A10001010000000000000001 /* EyePalsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyePalsApp.swift; sourceTree = "<group>"; };
+        A10001000000000000000001 /* EyePal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EyePal.app; sourceTree = BUILT_PRODUCTS_DIR; };
+        A10001010000000000000001 /* EyePalApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EyePalApp.swift; sourceTree = "<group>"; };
         A10001010000000000000002 /* RootTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootTabView.swift; sourceTree = "<group>"; };
         A10001010000000000000003 /* FaceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceProfile.swift; sourceTree = "<group>"; };
         A10001010000000000000004 /* FaceSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FaceSuggestion.swift; sourceTree = "<group>"; };
@@ -51,7 +51,7 @@
 		A10001010000000000000011 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A10001010000000000000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A10001010000000000000013 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A10001010000000000000019 /* EyePals-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EyePals-Bridging-Header.h; sourceTree = "<group>"; };
+		A10001010000000000000019 /* EyePal-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EyePal-Bridging-Header.h; sourceTree = "<group>"; };
 		A1000101000000000000001A /* arcface_fresh.onnx */ = {isa = PBXFileReference; lastKnownFileType = file; name = arcface_fresh.onnx; path = tools/face_model/models/arcface_fresh.onnx; sourceTree = SOURCE_ROOT; };
 /* End PBXFileReference section */
 
@@ -69,32 +69,32 @@
         A10003000000000000000001 = {
             isa = PBXGroup;
             children = (
-                A10003000000000000000002 /* EyePals */,
+                A10003000000000000000002 /* EyePal */,
                 A10003000000000000000003 /* Products */,
             );
             sourceTree = "<group>";
         };
-        A10003000000000000000002 /* EyePals */ = {
+        A10003000000000000000002 /* EyePal */ = {
             isa = PBXGroup;
             children = (
 				A10001010000000000000013 /* Info.plist */,
 				A10001010000000000000012 /* Assets.xcassets */,
-				A10001010000000000000019 /* EyePals-Bridging-Header.h */,
+				A10001010000000000000019 /* EyePal-Bridging-Header.h */,
 				A1000101000000000000001A /* arcface_fresh.onnx */,
-				A10001010000000000000001 /* EyePalsApp.swift */,
+				A10001010000000000000001 /* EyePalApp.swift */,
                 A10001010000000000000002 /* RootTabView.swift */,
                 A10003000000000000000004 /* Models */,
                 A10003000000000000000005 /* Services */,
                 A10003000000000000000006 /* ViewModels */,
                 A10003000000000000000007 /* Views */,
             );
-            path = EyePals;
+            path = EyePal;
             sourceTree = "<group>";
         };
         A10003000000000000000003 /* Products */ = {
             isa = PBXGroup;
             children = (
-                A10001000000000000000001 /* EyePals.app */,
+                A10001000000000000000001 /* EyePal.app */,
             );
             name = Products;
             sourceTree = "<group>";
@@ -170,9 +170,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-        A10004000000000000000001 /* EyePals */ = {
+        A10004000000000000000001 /* EyePal */ = {
             isa = PBXNativeTarget;
-            buildConfigurationList = A10007000000000000000001 /* Build configuration list for PBXNativeTarget "EyePals" */;
+            buildConfigurationList = A10007000000000000000001 /* Build configuration list for PBXNativeTarget "EyePal" */;
             buildPhases = (
                 A10002000000000000000002 /* Sources */,
                 A10002000000000000000001 /* Frameworks */,
@@ -182,9 +182,9 @@
             );
             dependencies = (
             );
-            name = EyePals;
-            productName = EyePals;
-            productReference = A10001000000000000000001 /* EyePals.app */;
+            name = EyePal;
+            productName = EyePal;
+            productReference = A10001000000000000000001 /* EyePal.app */;
             productType = "com.apple.product-type.application";
         };
 /* End PBXNativeTarget section */
@@ -202,7 +202,7 @@
                     };
                 };
             };
-            buildConfigurationList = A10007000000000000000002 /* Build configuration list for PBXProject "EyePals" */;
+            buildConfigurationList = A10007000000000000000002 /* Build configuration list for PBXProject "EyePal" */;
             compatibilityVersion = "Xcode 14.0";
             developmentRegion = en;
             hasScannedForEncodings = 0;
@@ -215,7 +215,7 @@
             projectDirPath = "";
             projectRoot = "";
             targets = (
-                A10004000000000000000001 /* EyePals */,
+                A10004000000000000000001 /* EyePal */,
             );
         };
 /* End PBXProject section */
@@ -240,7 +240,7 @@
                 A10000010000000000000005 /* AccessibilityAnnouncementCenter.swift in Sources */,
                 A10000010000000000000006 /* CameraPipeline.swift in Sources */,
                 A10000010000000000000007 /* CameraPreviewView.swift in Sources */,
-				A10000010000000000000001 /* EyePalsApp.swift in Sources */,
+				A10000010000000000000001 /* EyePalApp.swift in Sources */,
 				A10000010000000000000009 /* FaceEmbeddingEngine.swift in Sources */,
 				A10000010000000000000018 /* FaceModelContract.swift in Sources */,
 				A10000010000000000000003 /* FaceProfile.swift in Sources */,
@@ -274,7 +274,7 @@
                 DEVELOPMENT_TEAM = "";
                 ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = EyePals/Info.plist;
+				INFOPLIST_FILE = EyePal/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
                 LD_RUNPATH_SEARCH_PATHS = (
                     "$(inherited)",
@@ -286,7 +286,7 @@
                 SDKROOT = iphoneos;
                 SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = EyePals/EyePals-Bridging-Header.h;
+				SWIFT_OBJC_BRIDGING_HEADER = EyePal/EyePal-Bridging-Header.h;
 				SWIFT_VERSION = 5.0;
                 TARGETED_DEVICE_FAMILY = 1;
             };
@@ -304,7 +304,7 @@
                 DEVELOPMENT_TEAM = "";
                 ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = EyePals/Info.plist;
+				INFOPLIST_FILE = EyePal/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
                 LD_RUNPATH_SEARCH_PATHS = (
                     "$(inherited)",
@@ -316,7 +316,7 @@
                 SDKROOT = iphoneos;
                 SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_OBJC_BRIDGING_HEADER = EyePals/EyePals-Bridging-Header.h;
+				SWIFT_OBJC_BRIDGING_HEADER = EyePal/EyePal-Bridging-Header.h;
 				SWIFT_VERSION = 5.0;
                 TARGETED_DEVICE_FAMILY = 1;
             };
@@ -345,7 +345,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-        A10007000000000000000001 /* Build configuration list for PBXNativeTarget "EyePals" */ = {
+        A10007000000000000000001 /* Build configuration list for PBXNativeTarget "EyePal" */ = {
             isa = XCConfigurationList;
             buildConfigurations = (
                 A10006000000000000000001 /* Debug */,
@@ -354,7 +354,7 @@
             defaultConfigurationIsVisible = 0;
             defaultConfigurationName = Release;
         };
-        A10007000000000000000002 /* Build configuration list for PBXProject "EyePals" */ = {
+        A10007000000000000000002 /* Build configuration list for PBXProject "EyePal" */ = {
             isa = XCConfigurationList;
             buildConfigurations = (
                 A10006000000000000000003 /* Debug */,

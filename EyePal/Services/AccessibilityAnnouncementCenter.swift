@@ -10,7 +10,11 @@ final class AccessibilityAnnouncementCenter {
         guard !trimmed.isEmpty else { return }
 
         let now = Date()
-        guard trimmed != lastAnnouncement || now.timeIntervalSince(lastAnnouncementDate) >= minimumInterval else {
+        guard now.timeIntervalSince(lastAnnouncementDate) >= minimumInterval else {
+            return
+        }
+
+        guard trimmed != lastAnnouncement || minimumInterval == 0 else {
             return
         }
 

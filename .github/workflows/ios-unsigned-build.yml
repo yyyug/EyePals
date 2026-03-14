@@ -35,8 +35,8 @@ jobs:
       - name: Build Unsigned iPhone App
         run: |
           xcodebuild \
-            -workspace EyePals.xcworkspace \
-            -scheme EyePals \
+            -workspace EyePal.xcworkspace \
+            -scheme EyePal \
             -configuration Release \
             -sdk iphoneos \
             -destination 'generic/platform=iOS' \
@@ -48,15 +48,15 @@ jobs:
 
       - name: Package Unsigned IPA
         run: |
-          APP_PATH="build/Build/Products/Release-iphoneos/EyePals.app"
+          APP_PATH="build/Build/Products/Release-iphoneos/EyePal.app"
           test -d "$APP_PATH"
-          rm -rf Payload EyePals-unsigned.ipa
+          rm -rf Payload EyePal-unsigned.ipa
           mkdir -p Payload
-          cp -R "$APP_PATH" Payload/EyePals.app
-          ditto -c -k --sequesterRsrc --keepParent Payload EyePals-unsigned.ipa
+          cp -R "$APP_PATH" Payload/EyePal.app
+          ditto -c -k --sequesterRsrc --keepParent Payload EyePal-unsigned.ipa
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EyePals-unsigned-ipa
-          path: EyePals-unsigned.ipa
+          name: EyePal-unsigned-ipa
+          path: EyePal-unsigned.ipa

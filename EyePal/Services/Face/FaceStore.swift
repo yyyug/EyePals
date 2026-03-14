@@ -7,7 +7,7 @@ actor FaceStore {
 
     init() {
         let appSupport = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let baseDirectory = appSupport.appendingPathComponent("EyePals", isDirectory: true)
+        let baseDirectory = appSupport.appendingPathComponent("EyePal", isDirectory: true)
         metadataURL = baseDirectory.appendingPathComponent("faces.json")
         imagesDirectoryURL = baseDirectory.appendingPathComponent("FaceImages", isDirectory: true)
     }
@@ -41,6 +41,12 @@ actor FaceStore {
 
     func imageURL(for filename: String) -> URL {
         imagesDirectoryURL.appendingPathComponent(filename)
+    }
+
+    func deleteImage(named filename: String) throws {
+        let url = imageURL(for: filename)
+        guard fileManager.fileExists(atPath: url.path) else { return }
+        try fileManager.removeItem(at: url)
     }
 
     private func ensureDirectories() throws {

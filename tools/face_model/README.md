@@ -1,6 +1,6 @@
 # Face Model Prep
 
-This folder prepares the face embedding model for EyePals.
+This folder prepares the face embedding model for EyePal.
 
 ## Tooling split
 

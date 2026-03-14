@@ -1,6 +1,6 @@
 platform :ios, '17.0'
 
-target 'EyePals' do
+target 'EyePal' do
   use_frameworks!
 
   pod 'GoogleMLKit/TextRecognition', '8.0.0'

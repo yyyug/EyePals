@@ -1,5 +1,7 @@
 import AVFoundation
+import CoreImage
 import SwiftUI
+import UIKit
 
 final class CameraPipeline: NSObject, ObservableObject {
     enum State: Equatable {
@@ -18,8 +20,11 @@ final class CameraPipeline: NSObject, ObservableObject {
 
     private let sessionQueue = DispatchQueue(label: "com.eyepals.camera.session")
     private let outputQueue = DispatchQueue(label: "com.eyepals.camera.output")
+    private let latestFrameQueue = DispatchQueue(label: "com.eyepals.camera.latest-frame")
     private let videoOutput = AVCaptureVideoDataOutput()
+    private let ciContext = CIContext()
     private var isConfigured = false
+    private var latestSampleBuffer: CMSampleBuffer?
 
     func start() {
         sessionQueue.async {
@@ -42,6 +47,22 @@ final class CameraPipeline: NSObject, ObservableObject {
                 self.state = .idle
             }
         }
+    }
+
+    func currentFrameImage() -> UIImage? {
+        guard let sampleBuffer = latestFrameQueue.sync(execute: { latestSampleBuffer }) else {
+            return nil
+        }
+        guard let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+            return nil
+        }
+
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer).oriented(.right)
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
+            return nil
+        }
+
+        return UIImage(cgImage: cgImage)
     }
 
     private func configureIfNeeded() {
@@ -116,6 +137,9 @@ extension CameraPipeline: AVCaptureVideoDataOutputSampleBufferDelegate {
         didOutput sampleBuffer: CMSampleBuffer,
         from connection: AVCaptureConnection
     ) {
+        latestFrameQueue.sync {
+            latestSampleBuffer = sampleBuffer
+        }
         onSampleBuffer?(sampleBuffer)
     }
 }

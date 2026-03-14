@@ -59,7 +59,7 @@ def verify_model(model_path: Path) -> dict[str, object]:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Verify and package the EyePals ONNX face embedding model.")
+    parser = argparse.ArgumentParser(description="Verify and package the EyePal ONNX face embedding model.")
     parser.add_argument("--model", required=True, type=Path, help="Path to arcface_fresh.onnx")
     parser.add_argument("--output-dir", required=True, type=Path, help="Directory where the validated model bundle will be written.")
     args = parser.parse_args()

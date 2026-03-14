@@ -5,3 +5,4 @@ __pycache__/
 tools/*.pt
 tools/face_model/models/*
 tools/face_model/dist/
+artifacts-ipa/

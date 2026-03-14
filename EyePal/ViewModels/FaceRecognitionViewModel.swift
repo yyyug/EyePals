@@ -6,7 +6,6 @@ final class FaceRecognitionViewModel: ObservableObject {
     @Published var statusText = "Point the camera at a face."
     @Published var recognizedName: String?
     @Published var pendingSuggestion: FaceSuggestion?
-    @Published var profiles: [FaceProfile] = []
     @Published var errorMessage: String?
 
     let camera = CameraPipeline()
@@ -32,7 +31,7 @@ final class FaceRecognitionViewModel: ObservableObject {
 
         Task {
             do {
-                profiles = try await recognitionService.loadProfiles()
+                _ = try await recognitionService.loadProfiles()
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -48,7 +47,7 @@ final class FaceRecognitionViewModel: ObservableObject {
 
         Task {
             do {
-                profiles = try await recognitionService.saveFace(name: name, suggestion: pendingSuggestion)
+                _ = try await recognitionService.saveFace(name: name, suggestion: pendingSuggestion)
                 self.pendingSuggestion = nil
                 statusText = "\(name) was saved for on-device recognition."
                 announcer.announce(statusText, minimumInterval: 0)
@@ -60,16 +59,6 @@ final class FaceRecognitionViewModel: ObservableObject {
 
     func dismissSuggestion() {
         pendingSuggestion = nil
-    }
-
-    func deleteProfile(id: UUID) {
-        Task {
-            do {
-                profiles = try await recognitionService.deleteProfile(id: id)
-            } catch {
-                errorMessage = error.localizedDescription
-            }
-        }
     }
 
     private func handle(sampleBuffer: CMSampleBuffer) {
