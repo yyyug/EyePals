@@ -1,0 +1,7 @@
+# Ignore local Python envs and downloaded model binaries
+.venv/
+.venv-ubuntu/
+__pycache__/
+tools/*.pt
+tools/face_model/models/*
+tools/face_model/dist/

@@ -1,0 +1,22 @@
+{
+  "model_name": "ArcFace ONNX face embedding model",
+  "windows_validation_model": "arcface_fresh.onnx",
+  "ubuntu_package_script": "package_onnx_model.py",
+  "ubuntu_output": "arcface_fresh.onnx",
+  "recommended_ubuntu_source": "tools/face_model/models/arcface_fresh.onnx",
+  "input_name": "input_1",
+  "input_layout": "NHWC",
+  "input_dtype": "float32",
+  "input_shape": [1, 112, 112, 3],
+  "color_space": "RGB",
+  "normalization": "(pixel - 127.5) / 128.0",
+  "output_name": "embedding",
+  "embedding_size": 512,
+  "distance_metric": "cosine_similarity",
+  "recommended_match_threshold": 0.82,
+  "shipping_source": "Bundled arcface_fresh.onnx loaded directly by ONNX Runtime on iOS",
+  "non_shipping_artifacts": [
+    "tools/face_model/models/mobilefacenet_scripted.pt",
+    "tools/face_model/models/model_mobilefacenet.pth"
+  ]
+}

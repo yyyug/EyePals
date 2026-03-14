@@ -1,0 +1,58 @@
+name: iOS Unsigned Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: false
+
+      - name: Install CocoaPods
+        run: gem install cocoapods
+
+      - name: Download ONNX Model
+        run: |
+          mkdir -p tools/face_model/models
+          curl -L "https://huggingface.co/garavv/arcface-onnx/resolve/main/arc.onnx?download=true" \
+            -o tools/face_model/models/arcface_fresh.onnx
+
+      - name: Install Pods
+        run: pod install
+
+      - name: Build Unsigned Simulator App
+        run: |
+          xcodebuild \
+            -workspace EyePals.xcworkspace \
+            -scheme EyePals \
+            -configuration Release \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            clean build
+
+      - name: Archive Artifact
+        run: |
+          APP_PATH="build/Build/Products/Release-iphonesimulator/EyePals.app"
+          test -d "$APP_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" EyePals-unsigned-simulator-app.zip
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EyePals-unsigned-simulator-app
+          path: EyePals-unsigned-simulator-app.zip
