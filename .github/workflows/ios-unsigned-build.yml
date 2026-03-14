@@ -32,27 +32,31 @@ jobs:
       - name: Install Pods
         run: pod install
 
-      - name: Build Unsigned Simulator App
+      - name: Build Unsigned iPhone App
         run: |
           xcodebuild \
             -workspace EyePals.xcworkspace \
             -scheme EyePals \
             -configuration Release \
-            -sdk iphonesimulator \
-            -destination 'generic/platform=iOS Simulator' \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
             clean build
 
-      - name: Archive Artifact
+      - name: Package Unsigned IPA
         run: |
-          APP_PATH="build/Build/Products/Release-iphonesimulator/EyePals.app"
+          APP_PATH="build/Build/Products/Release-iphoneos/EyePals.app"
           test -d "$APP_PATH"
-          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" EyePals-unsigned-simulator-app.zip
+          rm -rf Payload EyePals-unsigned.ipa
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/EyePals.app
+          ditto -c -k --sequesterRsrc --keepParent Payload EyePals-unsigned.ipa
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: EyePals-unsigned-simulator-app
-          path: EyePals-unsigned-simulator-app.zip
+          name: EyePals-unsigned-ipa
+          path: EyePals-unsigned.ipa
