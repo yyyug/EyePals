@@ -26,11 +26,11 @@ final class FaceRecognitionService {
     private var pendingKnownMatch: CandidateMatch?
     private var consecutiveKnownFrames = 0
 
-    var recognitionThreshold: Float = 0.9
+    var recognitionThreshold: Float = 0.87
     var suggestionFrameThreshold = 6
     var minimumSuggestionInterval: TimeInterval = 10
-    var knownMatchFrameThreshold = 3
-    var minimumTopMatchMargin: Float = 0.04
+    var knownMatchFrameThreshold = 2
+    var minimumTopMatchMargin: Float = 0.015
 
     func loadProfiles() async throws -> [FaceProfile] {
         let loaded = try await faceStore.loadProfiles()

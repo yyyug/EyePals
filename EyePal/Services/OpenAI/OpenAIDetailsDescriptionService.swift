@@ -138,7 +138,7 @@ final class OpenAIDetailsDescriptionService {
 
     private func makePayload(imageData: Data, conversation: [DetailsDescriptionTurn]) -> [String: Any] {
         [
-            "model": "gpt-5.3",
+            "model": "gpt-5.4",
             "store": false,
             "stream": false,
             "input": buildInput(from: conversation, imageData: imageData)

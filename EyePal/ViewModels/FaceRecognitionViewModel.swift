@@ -22,16 +22,17 @@ final class FaceRecognitionViewModel: ObservableObject {
 
     func bind(settings: SettingsStore) {
         settingsStore = settings
-        recognitionService.recognitionThreshold = max(Float(settings.faceMatchThreshold), 0.88)
+        recognitionService.recognitionThreshold = max(Float(settings.faceMatchThreshold), 0.84)
     }
 
     func start() {
-        statusText = "Starting face recognition."
-        camera.start()
+        statusText = "Loading saved faces."
 
         Task {
             do {
                 _ = try await recognitionService.loadProfiles()
+                statusText = "Starting face recognition."
+                camera.start()
             } catch {
                 errorMessage = error.localizedDescription
             }
@@ -66,6 +67,7 @@ final class FaceRecognitionViewModel: ObservableObject {
             guard let self else { return }
 
             if let match {
+                pendingSuggestion = nil
                 recognizedName = match.name
                 statusText = "Recognized \(match.name)."
                 announcer.announce(match.name, minimumInterval: settingsStore?.speechCooldown ?? 2.5)
