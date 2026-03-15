@@ -50,12 +50,6 @@ struct DetailsDescriptionView: View {
                             }
                             .buttonStyle(.borderedProminent)
                             .disabled(viewModel.isProcessing)
-
-                            Button("Sign Out") {
-                                openAIStore.signOut()
-                                viewModel.retake()
-                            }
-                            .buttonStyle(.bordered)
                         }
 
                         if !viewModel.descriptionText.isEmpty {
@@ -125,6 +119,11 @@ struct DetailsDescriptionView: View {
         }
         .onDisappear {
             viewModel.stop()
+        }
+        .onChange(of: openAIStore.isSignedIn) { isSignedIn in
+            if !isSignedIn {
+                viewModel.retake()
+            }
         }
     }
 }

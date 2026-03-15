@@ -5,6 +5,7 @@ import Translation
 
 struct SettingsView: View {
     @EnvironmentObject private var settingsStore: SettingsStore
+    @EnvironmentObject private var openAIStore: OpenAISubscriptionStore
 
     var body: some View {
         NavigationStack {
@@ -20,6 +21,11 @@ struct SettingsView: View {
                 }
 
                 Section("Features") {
+                    NavigationLink("Details Description") {
+                        DetailsDescriptionSettingsView()
+                            .environmentObject(openAIStore)
+                    }
+
                     NavigationLink("Quick Recognition") {
                         QuickRecognitionSettingsView()
                             .environmentObject(settingsStore)
@@ -39,6 +45,29 @@ struct SettingsView: View {
 #Preview {
     SettingsView()
         .environmentObject(SettingsStore())
+        .environmentObject(OpenAISubscriptionStore())
+}
+
+private struct DetailsDescriptionSettingsView: View {
+    @EnvironmentObject private var openAIStore: OpenAISubscriptionStore
+
+    var body: some View {
+        Form {
+            if openAIStore.isSignedIn {
+                Section {
+                    Button("Sign Out", role: .destructive) {
+                        openAIStore.signOut()
+                    }
+                }
+            } else {
+                Section {
+                    Text("Not signed in.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .navigationTitle("Details Description")
+    }
 }
 
 private struct QuickRecognitionSettingsView: View {

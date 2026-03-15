@@ -13,6 +13,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
     let camera = CameraPipeline()
 
     private let descriptionService = OpenAIDetailsDescriptionService()
+    private let announcer = AccessibilityAnnouncementCenter()
     private var conversation: [DetailsDescriptionTurn] = []
     private var imageData: Data?
     private var openAIStore: OpenAISubscriptionStore?
@@ -57,7 +58,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
                 conversation = [
                     DetailsDescriptionTurn(
                         role: .user,
-                        text: "Describe this image for a blind user. Focus on people, objects, visible text, layout, hazards, and orientation cues. Be concise but specific."
+                        text: "Describe this image for a blind user. Focus on people, objects, visible text, layout, hazards, and orientation cues. Be concise but specific. Do not use markdown or double asterisks."
                     )
                 ]
 
@@ -70,6 +71,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
                 conversation.append(DetailsDescriptionTurn(role: .assistant, text: response))
                 descriptionText = response
                 statusText = "Photo details are ready."
+                announcer.announce(response, minimumInterval: 0)
                 isProcessing = false
             } catch {
                 errorMessage = error.localizedDescription
@@ -109,6 +111,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
                 conversation.append(DetailsDescriptionTurn(role: .assistant, text: response))
                 descriptionText = response
                 statusText = "Follow-up answer is ready."
+                announcer.announce(response, minimumInterval: 0)
                 isProcessing = false
             } catch {
                 errorMessage = error.localizedDescription

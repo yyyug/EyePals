@@ -322,7 +322,7 @@ final class OpenAIDetailsDescriptionService {
     }
 
     private func makeInstructions() -> String {
-        let baseInstructions = "You are a concise visual assistant for a blind user. Describe the scene accurately, prioritize safety-relevant details, visible text, people, objects, layout, and orientation cues. Answer follow-up questions using the image and prior conversation."
+        let baseInstructions = "You are a concise visual assistant for a blind user. Describe the scene accurately, prioritize safety-relevant details, visible text, people, objects, layout, and orientation cues. Answer follow-up questions using the image and prior conversation. Do not use markdown bold formatting or surround words with double asterisks."
 
         guard let systemLanguageInstruction = currentSystemLanguageInstruction() else {
             return baseInstructions
@@ -367,14 +367,23 @@ final class OpenAIDetailsDescriptionService {
         ])
 
         for turn in conversation.dropFirst() {
+            let content: [[String: Any]]
+            if turn.role == .assistant {
+                content = [[
+                    "type": "output_text",
+                    "text": turn.text,
+                    "phase": "final_answer"
+                ]]
+            } else {
+                content = [[
+                    "type": "input_text",
+                    "text": turn.text
+                ]]
+            }
+
             input.append([
                 "role": turn.role.rawValue,
-                "content": [
-                    [
-                        "type": "input_text",
-                        "text": turn.text
-                    ]
-                ]
+                "content": content
             ])
         }
 
