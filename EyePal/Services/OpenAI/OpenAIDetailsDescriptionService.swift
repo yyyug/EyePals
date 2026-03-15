@@ -88,7 +88,7 @@ final class OpenAIDetailsDescriptionService {
         let credentials = try await store.activeCredentials(forceRefresh: false)
         var request = URLRequest(url: URL(string: "https://chatgpt.com/backend-api/codex/responses")!)
         request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("text/event-stream", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(credentials.accessToken)", forHTTPHeaderField: "Authorization")
         request.setValue("EyePal/1.0", forHTTPHeaderField: "User-Agent")
@@ -99,7 +99,7 @@ final class OpenAIDetailsDescriptionService {
         let body = makePayload(imageData: imageData, conversation: conversation)
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
 
-        let (data, response) = try await session.data(for: request)
+        let (bytes, response) = try await session.bytes(for: request)
         guard let httpResponse = response as? HTTPURLResponse else {
             throw OpenAIDetailsDescriptionError.invalidResponse
         }
@@ -115,6 +115,7 @@ final class OpenAIDetailsDescriptionService {
         }
 
         guard (200..<300).contains(httpResponse.statusCode) else {
+            let data = try await collectData(from: bytes)
             if httpResponse.statusCode == 401 {
                 throw OpenAIDetailsDescriptionError.unauthorized
             }
@@ -127,13 +128,11 @@ final class OpenAIDetailsDescriptionService {
             throw OpenAIDetailsDescriptionError.backendError(fallback)
         }
 
-        let envelope = try JSONDecoder().decode(ResponseEnvelope.self, from: data)
-        guard let text = envelope.primaryText?.trimmingCharacters(in: .whitespacesAndNewlines),
-              !text.isEmpty else {
-            throw OpenAIDetailsDescriptionError.emptyResponse
+        if let streamedText = try await readStreamedResponse(from: bytes) {
+            return streamedText
         }
 
-        return text
+        throw OpenAIDetailsDescriptionError.emptyResponse
     }
 
     private func makePayload(imageData: Data, conversation: [DetailsDescriptionTurn]) -> [String: Any] {
@@ -141,9 +140,185 @@ final class OpenAIDetailsDescriptionService {
             "model": "gpt-5.4",
             "instructions": makeInstructions(),
             "store": false,
-            "stream": false,
+            "stream": true,
             "input": buildInput(from: conversation, imageData: imageData)
         ]
+    }
+
+    private func readStreamedResponse(from bytes: URLSession.AsyncBytes) async throws -> String? {
+        var streamedText = ""
+        var rawEventData = Data()
+        var streamedErrorMessage: String?
+
+        for try await line in bytes.lines {
+            if line.isEmpty {
+                continue
+            }
+
+            let payloadLine: String
+            if line == "data: [DONE]" || line == "[DONE]" {
+                break
+            } else if line.hasPrefix("data: ") {
+                payloadLine = String(line.dropFirst(6))
+            } else {
+                payloadLine = line
+            }
+
+            guard let lineData = payloadLine.data(using: .utf8) else {
+                continue
+            }
+
+            rawEventData.append(lineData)
+            rawEventData.append(0x0A)
+
+            if let errorMessage = extractErrorMessage(from: lineData) {
+                streamedErrorMessage = errorMessage
+            }
+
+            if let chunk = extractTextChunk(from: lineData) {
+                streamedText += chunk
+            }
+        }
+
+        if let streamedErrorMessage, streamedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw OpenAIDetailsDescriptionError.backendError(streamedErrorMessage)
+        }
+
+        let trimmedStreamedText = streamedText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmedStreamedText.isEmpty {
+            return trimmedStreamedText
+        }
+
+        if let bufferedErrorMessage = extractErrorMessage(from: rawEventData) {
+            throw OpenAIDetailsDescriptionError.backendError(bufferedErrorMessage)
+        }
+
+        if let bufferedText = extractBufferedText(from: rawEventData) {
+            return bufferedText
+        }
+
+        return nil
+    }
+
+    private func collectData(from bytes: URLSession.AsyncBytes) async throws -> Data {
+        var data = Data()
+        for try await byte in bytes {
+            data.append(byte)
+        }
+        return data
+    }
+
+    private func extractBufferedText(from data: Data) -> String? {
+        if let envelope = try? JSONDecoder().decode(ResponseEnvelope.self, from: data),
+           let text = envelope.primaryText?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !text.isEmpty {
+            return text
+        }
+
+        let jsonLines = String(data: data, encoding: .utf8)?
+            .split(separator: "\n")
+            .compactMap { line -> String? in
+                let trimmedLine = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard let lineData = trimmedLine.data(using: .utf8) else { return nil }
+                return extractTextChunk(from: lineData)
+            } ?? []
+
+        let combined = jsonLines.joined().trimmingCharacters(in: .whitespacesAndNewlines)
+        return combined.isEmpty ? nil : combined
+    }
+
+    private func extractTextChunk(from data: Data) -> String? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) else {
+            return nil
+        }
+
+        return extractTextChunk(from: object)
+    }
+
+    private func extractErrorMessage(from data: Data) -> String? {
+        if let envelope = try? JSONDecoder().decode(BackendErrorEnvelope.self, from: data) {
+            return envelope.error.message
+        }
+
+        guard let object = try? JSONSerialization.jsonObject(with: data) else {
+            return nil
+        }
+
+        return extractErrorMessage(from: object)
+    }
+
+    private func extractTextChunk(from object: Any) -> String? {
+        if let dictionary = object as? [String: Any] {
+            if let delta = dictionary["delta"] as? String, !delta.isEmpty {
+                return delta
+            }
+
+            if let outputText = dictionary["output_text"] as? String, !outputText.isEmpty {
+                return outputText
+            }
+
+            if let text = dictionary["text"] as? String,
+               let type = dictionary["type"] as? String,
+               type.localizedCaseInsensitiveContains("text") {
+                return text
+            }
+
+            for value in dictionary.values {
+                if let nestedText = extractTextChunk(from: value) {
+                    return nestedText
+                }
+            }
+
+            return nil
+        }
+
+        if let array = object as? [Any] {
+            for value in array {
+                if let nestedText = extractTextChunk(from: value) {
+                    return nestedText
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private func extractErrorMessage(from object: Any) -> String? {
+        if let dictionary = object as? [String: Any] {
+            if let error = dictionary["error"] as? [String: Any],
+               let message = error["message"] as? String,
+               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return message
+            }
+
+            if let detail = dictionary["detail"] as? String,
+               !detail.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return detail
+            }
+
+            if let message = dictionary["message"] as? String,
+               let type = dictionary["type"] as? String,
+               type.localizedCaseInsensitiveContains("error"),
+               !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                return message
+            }
+
+            for value in dictionary.values {
+                if let nestedMessage = extractErrorMessage(from: value) {
+                    return nestedMessage
+                }
+            }
+        }
+
+        if let array = object as? [Any] {
+            for value in array {
+                if let nestedMessage = extractErrorMessage(from: value) {
+                    return nestedMessage
+                }
+            }
+        }
+
+        return nil
     }
 
     private func makeInstructions() -> String {
