@@ -50,7 +50,7 @@ final class FaceRecognitionViewModel: ObservableObject {
             do {
                 _ = try await recognitionService.saveFace(name: name, suggestion: pendingSuggestion)
                 self.pendingSuggestion = nil
-                statusText = "\(name) was saved for on-device recognition."
+                statusText = "\(name) was saved with multiple samples for on-device recognition."
                 announcer.announce(statusText, minimumInterval: 0)
             } catch {
                 errorMessage = error.localizedDescription
@@ -78,7 +78,7 @@ final class FaceRecognitionViewModel: ObservableObject {
 
             if let suggestion, pendingSuggestion == nil, settingsStore?.suggestUnknownFaces ?? true {
                 pendingSuggestion = suggestion
-                announcer.announce("Unknown face detected. You can add this person.", minimumInterval: 3)
+                announcer.announce("Unknown face detected. A few samples were captured, and you can add this person.", minimumInterval: 3)
             }
         }
     }

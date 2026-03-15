@@ -25,12 +25,17 @@ final class FaceRecognitionService {
     private var consecutiveUnknownFrames = 0
     private var pendingKnownMatch: CandidateMatch?
     private var consecutiveKnownFrames = 0
+    private var pendingUnknownEmbeddings: [[Float]] = []
+    private var pendingUnknownJPEGData: Data?
 
     var recognitionThreshold: Float = 0.87
     var suggestionFrameThreshold = 6
     var minimumSuggestionInterval: TimeInterval = 10
     var knownMatchFrameThreshold = 2
     var minimumTopMatchMargin: Float = 0.015
+    var borderlineKnownThreshold: Float = 0.82
+    var enrollmentSampleTarget = 4
+    var minimumEnrollmentSamples = 3
 
     func loadProfiles() async throws -> [FaceProfile] {
         let loaded = try await faceStore.loadProfiles()
@@ -56,12 +61,17 @@ final class FaceRecognitionService {
                 do {
                     let faceImage = try self.extractPrimaryFace(from: sampleBuffer)
                     let embedding = try await self.embeddingEngine.embedding(for: faceImage)
+                    let rankedCandidates = self.rankedCandidates(for: embedding)
 
-                    if let match = self.confirmedMatch(for: embedding) {
-                        self.consecutiveUnknownFrames = 0
+                    if let match = self.confirmedMatch(for: rankedCandidates) {
+                        self.resetUnknownTracking()
                         await completion(match, nil)
                     } else {
-                        let suggestion = self.handleUnknownFace(embedding: embedding, faceImage: faceImage)
+                        let suggestion = self.handleUnknownFace(
+                            embedding: embedding,
+                            faceImage: faceImage,
+                            rankedCandidates: rankedCandidates
+                        )
                         await completion(nil, suggestion)
                     }
                 } catch {
@@ -75,12 +85,16 @@ final class FaceRecognitionService {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else { return profiles }
 
-        var profile = FaceProfile(name: trimmedName, embedding: suggestion.embedding)
+        let sampleEmbeddings = suggestion.sampleEmbeddings.filter { !$0.isEmpty }
+        guard !sampleEmbeddings.isEmpty else { return profiles }
+
+        var profile = FaceProfile(name: trimmedName, sampleEmbeddings: sampleEmbeddings)
         if let jpegData = suggestion.jpegData {
             profile.sampleImageFilename = try await faceStore.saveImage(jpegData, for: profile.id)
         }
         profiles.append(profile)
         try await faceStore.saveProfiles(profiles)
+        resetUnknownTracking()
         return profiles
     }
 
@@ -119,8 +133,8 @@ final class FaceRecognitionService {
         return cgImage
     }
 
-    private func confirmedMatch(for embedding: [Float]) -> FaceMatch? {
-        guard let candidate = bestMatch(for: embedding) else {
+    private func confirmedMatch(for rankedCandidates: [CandidateMatch]) -> FaceMatch? {
+        guard let candidate = acceptedKnownCandidate(from: rankedCandidates) else {
             pendingKnownMatch = nil
             consecutiveKnownFrames = 0
             return nil
@@ -141,13 +155,22 @@ final class FaceRecognitionService {
         return FaceMatch(name: candidate.profile.name, confidence: candidate.confidence)
     }
 
-    private func bestMatch(for embedding: [Float]) -> CandidateMatch? {
-        let rankedCandidates = profiles
-            .map { profile in
-                CandidateMatch(profile: profile, confidence: cosineSimilarity(embedding, profile.embedding))
+    private func rankedCandidates(for embedding: [Float]) -> [CandidateMatch] {
+        profiles
+            .compactMap { profile in
+                let validEmbeddings = profile.sampleEmbeddings.filter { !$0.isEmpty }
+                guard !validEmbeddings.isEmpty else { return nil }
+
+                let confidence = validEmbeddings
+                    .map { cosineSimilarity(embedding, $0) }
+                    .max() ?? -1
+
+                return CandidateMatch(profile: profile, confidence: confidence)
             }
             .sorted { $0.confidence > $1.confidence }
+    }
 
+    private func acceptedKnownCandidate(from rankedCandidates: [CandidateMatch]) -> CandidateMatch? {
         guard let bestCandidate = rankedCandidates.first,
               bestCandidate.confidence >= recognitionThreshold else {
             return nil
@@ -160,19 +183,31 @@ final class FaceRecognitionService {
             }
         }
 
-        guard bestCandidate.confidence >= recognitionThreshold else {
-            return nil
-        }
-
         return bestCandidate
     }
 
-    private func handleUnknownFace(embedding: [Float], faceImage: CGImage) -> FaceSuggestion? {
+    private func handleUnknownFace(
+        embedding: [Float],
+        faceImage: CGImage,
+        rankedCandidates: [CandidateMatch]
+    ) -> FaceSuggestion? {
         pendingKnownMatch = nil
         consecutiveKnownFrames = 0
+
+        if let bestKnownConfidence = rankedCandidates.first?.confidence,
+           bestKnownConfidence >= borderlineKnownThreshold {
+            resetUnknownTracking()
+            return nil
+        }
+
         consecutiveUnknownFrames += 1
+        collectUnknownSample(embedding: embedding, faceImage: faceImage)
 
         guard consecutiveUnknownFrames >= suggestionFrameThreshold else {
+            return nil
+        }
+
+        guard pendingUnknownEmbeddings.count >= minimumEnrollmentSamples else {
             return nil
         }
 
@@ -182,10 +217,36 @@ final class FaceRecognitionService {
         }
 
         lastUnknownSuggestionDate = now
-        consecutiveUnknownFrames = 0
+        let suggestion = FaceSuggestion(
+            sampleEmbeddings: Array(pendingUnknownEmbeddings.prefix(enrollmentSampleTarget)),
+            jpegData: pendingUnknownJPEGData
+        )
+        resetUnknownTracking()
+        return suggestion
+    }
 
-        let jpegData = UIImage(cgImage: faceImage).jpegData(compressionQuality: 0.8)
-        return FaceSuggestion(embedding: embedding, jpegData: jpegData)
+    private func collectUnknownSample(embedding: [Float], faceImage: CGImage) {
+        if pendingUnknownEmbeddings.count < enrollmentSampleTarget {
+            let isDistinctEnough = pendingUnknownEmbeddings.allSatisfy { savedEmbedding in
+                cosineSimilarity(savedEmbedding, embedding) < 0.995
+            }
+
+            if isDistinctEnough || pendingUnknownEmbeddings.isEmpty {
+                pendingUnknownEmbeddings.append(embedding)
+            } else if pendingUnknownEmbeddings.count < minimumEnrollmentSamples {
+                pendingUnknownEmbeddings.append(embedding)
+            }
+        }
+
+        if pendingUnknownJPEGData == nil {
+            pendingUnknownJPEGData = UIImage(cgImage: faceImage).jpegData(compressionQuality: 0.8)
+        }
+    }
+
+    private func resetUnknownTracking() {
+        consecutiveUnknownFrames = 0
+        pendingUnknownEmbeddings = []
+        pendingUnknownJPEGData = nil
     }
 }
 

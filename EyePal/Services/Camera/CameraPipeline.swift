@@ -57,7 +57,7 @@ final class CameraPipeline: NSObject, ObservableObject {
             return nil
         }
 
-        let ciImage = CIImage(cvPixelBuffer: pixelBuffer).oriented(.right)
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent) else {
             return nil
         }
