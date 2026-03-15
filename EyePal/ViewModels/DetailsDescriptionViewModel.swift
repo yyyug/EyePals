@@ -3,7 +3,9 @@ import UIKit
 
 @MainActor
 final class DetailsDescriptionViewModel: ObservableObject {
-    @Published var statusText = "Point the camera and take a photo for scene details."
+    private static let helperInstruction = "Take a photo to describe the scene."
+
+    @Published var statusText = helperInstruction
     @Published var descriptionText = ""
     @Published var followUpQuestion = ""
     @Published var isProcessing = false
@@ -23,7 +25,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
     }
 
     func start() {
-        statusText = "Starting camera for details description."
+        statusText = Self.helperInstruction
         camera.start()
     }
 
@@ -129,7 +131,7 @@ final class DetailsDescriptionViewModel: ObservableObject {
         imageData = nil
         capturedPreview = nil
         errorMessage = nil
-        statusText = "Point the camera and take a photo for scene details."
+        statusText = Self.helperInstruction
         camera.start()
     }
 }

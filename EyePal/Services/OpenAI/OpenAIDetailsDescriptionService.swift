@@ -43,7 +43,7 @@ final class OpenAIDetailsDescriptionService {
     }
 
     func prepareImageData(from image: UIImage) throws -> Data {
-        let maximumDimension: CGFloat = 768
+        let maximumDimension: CGFloat = 640
         let originalSize = image.size
         guard originalSize.width > 0, originalSize.height > 0 else {
             throw OpenAIDetailsDescriptionError.missingImage
@@ -137,7 +137,7 @@ final class OpenAIDetailsDescriptionService {
 
     private func makePayload(imageData: Data, conversation: [DetailsDescriptionTurn]) -> [String: Any] {
         [
-            "model": "gpt-5.4",
+            "model": "gpt-5.1-codex-mini",
             "instructions": makeInstructions(),
             "store": false,
             "stream": true,
