@@ -137,7 +137,7 @@ final class OpenAIDetailsDescriptionService {
 
     private func makePayload(imageData: Data, conversation: [DetailsDescriptionTurn]) -> [String: Any] {
         [
-            "model": "gpt-5.1-codex-mini",
+            "model": "gpt-5.4-mini",
             "instructions": makeInstructions(),
             "store": false,
             "stream": true,
